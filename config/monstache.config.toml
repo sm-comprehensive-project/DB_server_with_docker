@@ -1,0 +1,3 @@
+mongo-url = "mongodb://admin:qwer1234!@mongodb:27017/damoa?authSource=admin"
+elasticsearch-urls = ["http://elasticsearch:9200"]
+enable-oplog = true
