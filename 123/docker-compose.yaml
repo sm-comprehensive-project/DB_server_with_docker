@@ -1,0 +1,108 @@
+version: '3'
+services:
+  elasticsearch:
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    networks:
+      - monstache-network
+
+  kibana:
+    restart: always
+    image: docker.elastic.co/kibana/kibana:7.10.0
+    expose:
+      - 5601
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    environment:
+      - SERVER_PORT=5601
+      - SERVER_NAME=kibana.example.org
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - monstache-network
+
+  monstache:
+    restart: always
+    image: rwynn/monstache:rel6
+    command: -f /config.toml
+    volumes:
+      - ./config/config.toml:/config.toml
+    depends_on:
+      - elasticsearch
+      - mongodb1
+      - mongodb2
+    ports:
+      - "8080:8080"
+    networks:
+      - monstache-network
+
+  mongodb1:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.mongo
+    image: custom-mongoyh:v1
+    container_name: mongo1
+    expose:
+      - "27017"
+    ports:
+      - "0.0.0.0:27018:27017"
+    volumes:
+      - ./mongodb/db1:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    environment:
+      - MONGO_INITDB_DATABASE=admin
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=qwer1234!
+    command: mongod --keyFile /etc/mongodb/keyfile --replSet rp0 --bind_ip_all --auth
+    networks:
+      - monstache-network
+
+  mongodb2:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.mongo
+    image: custom-mongoyh:v1
+    container_name: mongo2
+    expose:
+      - "27017"
+    ports:
+      - "0.0.0.0:27019:27017"
+    volumes:
+      - ./mongodb/db2:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    environment:
+      - MONGO_INITDB_DATABASE=damoa
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=qwer1234!
+    command: mongod --keyFile /etc/mongodb/keyfile --replSet rp0 --bind_ip_all --auth
+    networks:
+      - monstache-network
+
+  mongosetup:
+    image: "setup-rspl:latest"
+    volumes:
+      - ./mongodb/setup-replica.sh:/setup-replica.sh
+    depends_on:
+      - mongodb1
+      - mongodb2
+    networks:
+      - monstache-network
+
+networks:
+  monstache-network:
+    driver: bridge

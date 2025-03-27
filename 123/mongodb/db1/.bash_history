@@ -1,0 +1,3 @@
+mongo
+mongosh
+exit

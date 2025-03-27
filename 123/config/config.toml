@@ -1,0 +1,18 @@
+mongo-url = "mongodb://admin:qwer1234!@mongo1:27017,mongo2:27017/admin?replicaSet=rp0&authSource=admin&connectTimeoutMS=30000&socketTimeoutMS=30000&serverSelectionTimeoutMS=30000&authMechanism=SCRAM-SHA-256"
+elasticsearch-urls = ["http://elasticsearch:9200"]
+direct-read-namespaces = [ "db.collection", "test.test"] 
+dropped-collections = false
+dropped-databases = false
+resume = false
+resume-write-unsafe = true
+index-as-update = true
+index-oplog-time = true
+verbose = true
+
+[[script]]    
+script = """
+module.exports = function(doc, ns) {
+    doc._meta_monstache = { index: ns.replace(".","-") };
+    return doc;
+}
+"""
