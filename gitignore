@@ -1,1 +1,3 @@
 ./config/monstache.config.toml
+./mongo-keyfile
+./123/mongo-keyfile
