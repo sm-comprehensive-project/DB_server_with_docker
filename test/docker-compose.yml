@@ -20,15 +20,13 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - ./elasticsearch/data:/elasticsearch/data
+      - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
       - monstache-network
 
   kibana:
     restart: always
     image: docker.elastic.co/kibana/kibana:6.8.14
-    expose:
-      - 5601
     ports:
       - 5601:5601
     depends_on:
@@ -43,7 +41,7 @@ services:
   monstache:
     restart: always
     image: rwynn/monstache:rel5
-    command: -f /home/monstache.config.toml &
+    command: -f /home/monstache.config.toml
     volumes:
       - ./config/monstache.config.toml:/home/monstache.config.toml
     depends_on:
@@ -63,45 +61,55 @@ services:
     ports:
       - "27020:27017"
     volumes:
-      - ./mongodb/mongo1:/data
+      - mongo1_data:/data/db
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
       - monstache-network
     command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
+
   mongo2:
     image: "mongo"
     ports:
       - "27021:27017"
     volumes:
-      - ./mongodb/mongo2:/data
+      - mongo2_data:/data/db
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
       - monstache-network
     command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
     depends_on:
       - mongo1
+
   mongo3:
     image: "mongo"
     ports:
       - "27022:27017"
     volumes:
-      - ./mongodb/mongo1:/data
+      - mongo3_data:/data/db
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
       - monstache-network
     command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
     depends_on:
       - mongo2
+
+  # 레플리카셋 초기화 및 관리자 계정 생성
   mongosetup:
-    image: "setup-rspl"
-    volumes:
-      - ./mongodb-keyfile:/mongodb-keyfile
+    build:
+      context: ./mongodb
     depends_on:
       - mongo1
+      - mongo2
+      - mongo3
     networks:
       - monstache-network
-
 
 networks:
   monstache-network:
     driver: bridge
+
+volumes:
+  elasticsearch_data:
+  mongo1_data:
+  mongo2_data:
+  mongo3_data:

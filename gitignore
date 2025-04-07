@@ -1,3 +1,4 @@
 ./config/monstache.config.toml
 ./mongo-keyfile
-./123/mongo-keyfile
+./test/mongo-keyfile
+./test/mongodb/setup.sh
