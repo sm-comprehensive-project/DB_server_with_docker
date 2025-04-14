@@ -2,4 +2,4 @@
 ./mongo-keyfile
 ./test/mongo-keyfile
 ./test/mongodb/setup.sh
-./elasticsearch/config
+./elasticsearch/config/monstache.config.toml
