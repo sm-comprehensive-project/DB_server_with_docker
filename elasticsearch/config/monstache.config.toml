@@ -1,0 +1,13 @@
+# 기본 연결 설정
+mongo-url = "mongodb+srv://okhi3945:@clusterdamoa2.arr0haj.mongodb.net/"
+elasticsearch-urls = ["http://elasticsearch:9200"]
+enable-http-server = true
+http-server-addr = "0.0.0.0:8080"
+
+# 변경 스트림 설정
+change-stream-namespaces = ["DamoaDB.livecommerce", "damoa.naver_product"]
+
+# 선택적 설정
+resume = true
+resume-name = "monstache"
+index-as-update = true
