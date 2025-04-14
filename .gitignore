@@ -1,0 +1,4 @@
+./config/monstache.config.toml
+./mongo-keyfile
+./test/mongo-keyfile
+./test/mongodb/setup.sh
