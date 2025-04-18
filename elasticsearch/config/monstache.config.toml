@@ -4,10 +4,25 @@ elasticsearch-urls = ["http://elasticsearch:9200"]
 enable-http-server = true
 http-server-addr = "0.0.0.0:8080"
 
-# 변경 스트림 설정
-change-stream-namespaces = ["DamoaDB.livecommerce", "damoa.naver_product"]
+elasticsearch-version = "8.12.0"
 
-# 선택적 설정
+# 변경 스트림 설정
+change-stream-namespaces = ["damoa.kakao_product", "test.naver_product"]
+
+# 초기 동기화 설정
+direct-read-namespaces = ["damoa.kakao_product", "test.naver_product"]
+
+# 전역 설정 (최상위 레벨에 위치)
 resume = true
 resume-name = "monstache"
 index-as-update = true
+verbose = true
+
+# 네임스페이스 매핑 (각 매핑은 별도의 섹션)
+[[mapping]]
+namespace = "damoa.kakao_product"
+index = "damoa.kakao_product"
+
+[[mapping]]
+namespace = "test.naver_product"
+index = "test.naver_product"
