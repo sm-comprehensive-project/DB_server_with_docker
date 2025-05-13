@@ -1,10 +1,27 @@
 mongo-url = "mongodb://monstache:secure_password@mongo1:27017,mongo2:27017,mongo3:27017/test?replicaSet=replication&authSource=admin"
 elasticsearch-urls = ["http://elasticsearch:9200"]
-elasticsearch-max-conns = 4
-elasticsearch-max-seconds = 5
-elasticsearch-max-bytes = 8000000
-dropped-collections = false
-dropped-databases = false
+enable-http-server = true
+http-server-addr = "0.0.0.0:8080"
 
-namespace-regex = "^test\\."
-direct-read-namespaces = ["test.products", "test.livestreams", "test.promotions", "test.platforms"]
+elasticsearch-version = "8.12.0"
+
+# 변경 스트림 damoa
+change-stream-namespaces = ["damoa.kakao_product", "damoa.naver_product"]
+
+# 초기 동기화 설정
+direct-read-namespaces = ["damoa.kakao_product", "damoa.naver_product"]
+
+# 전역 설정 (최상위 레벨에 위치)
+resume = true
+resume-name = "monstache"
+index-as-update = true
+verbose = true
+
+# 네임스페이스 매핑 (각 매핑은 별도의 섹션)
+[[mapping]]
+namespace = "damoa.kakao_product"
+index = "damoa.kakao_product"
+
+[[mapping]]
+namespace = "damoa.naver_product"
+index = "damoa.naver_product"
