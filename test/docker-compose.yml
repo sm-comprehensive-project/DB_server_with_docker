@@ -22,7 +22,7 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
-      - monstache-network
+      - app-network  # 통합된 네트워크 사용
 
   kibana:
     restart: always
@@ -36,7 +36,7 @@ services:
       - SERVER_NAME=kibana.example.org
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     networks:
-      - monstache-network
+      - app-network  # 통합된 네트워크 사용
 
   monstache:
     restart: always
@@ -54,7 +54,7 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - monstache-network
+      - app-network  # 통합된 네트워크 사용
 
   mongo1:
     image: "mongo"
@@ -64,7 +64,7 @@ services:
       - mongo1_data:/data/db
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
-      - monstache-network
+      - app-network  # 통합된 네트워크 사용
     command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
 
   mongo2:
@@ -75,7 +75,7 @@ services:
       - mongo2_data:/data/db
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
-      - monstache-network
+      - app-network  # 통합된 네트워크 사용
     command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
     depends_on:
       - mongo1
@@ -88,7 +88,7 @@ services:
       - mongo3_data:/data/db
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
-      - monstache-network
+      - app-network  # 통합된 네트워크 사용
     command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
     depends_on:
       - mongo2
@@ -102,10 +102,59 @@ services:
       - mongo2
       - mongo3
     networks:
-      - monstache-network
+      - app-network  # 통합된 네트워크 사용
+
+  # ZooKeeper (Kafka 관리용)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - app-network
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app-network
+
+  # Go 서버 (이벤트 발행)
+  go-server:
+    build: ./go-server
+    ports:
+      - "8000:8000"
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+      - MONGO_URI=mongodb://monstache:secure_password@mongo1:27017,mongo2:27017,mongo3:27017/damoa?replicaSet=replication&authSource=admin
+    depends_on:
+      - kafka
+      - mongosetup  # MongoDB 초기화 완료 후 실행
+    networks:
+      - app-network
+
+  # Go 컨슈머 (MongoDB에 저장)
+  go-consumer:
+    build: ./go-consumer
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+      - MONGO_URI=mongodb://monstache:secure_password@mongo1:27017,mongo2:27017,mongo3:27017/damoa?replicaSet=replication&authSource=admin  # damoa 데이터베이스로 통일
+    depends_on:
+      - kafka
+      - mongosetup  # MongoDB 초기화 완료 후 실행
+    networks:
+      - app-network
 
 networks:
-  monstache-network:
+  app-network:  # 하나의 네트워크로 통합
     driver: bridge
 
 volumes:
