@@ -65,7 +65,7 @@ services:
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
       - app-network  # 통합된 네트워크 사용
-    command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
+    command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all"
 
   mongo2:
     image: "mongo"
@@ -76,7 +76,7 @@ services:
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
       - app-network  # 통합된 네트워크 사용
-    command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
+    command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all"
     depends_on:
       - mongo1
 
@@ -89,7 +89,7 @@ services:
       - ./mongodb-keyfile:/mongodb-keyfile
     networks:
       - app-network  # 통합된 네트워크 사용
-    command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all --keyFile /mongodb-keyfile --auth"
+    command: bash -c "chmod 400 /mongodb-keyfile && chown mongodb:mongodb /mongodb-keyfile && mongod --replSet replication --bind_ip_all"
     depends_on:
       - mongo2
 
