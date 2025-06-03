@@ -3,13 +3,16 @@ version: "3"
 services:
   elasticsearch:
     restart: always
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.8.14
+    # image: docker.elastic.co/elasticsearch/elasticsearch:6.8.14
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     ports:
       - "9200:9200"
       - "9300:9300"
     environment:
       - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
       - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
     healthcheck:
       test: "wget -q -O - http://localhost:9200/_cat/health"
       interval: 1s
@@ -26,7 +29,8 @@ services:
 
   kibana:
     restart: always
-    image: docker.elastic.co/kibana/kibana:6.8.14
+    # image: docker.elastic.co/kibana/kibana:6.8.14
+    image: docker.elastic.co/kibana/kibana:8.12.0
     ports:
       - 5601:5601
     depends_on:
@@ -124,6 +128,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true' # 토픽 자동 생성
     networks:
       - app-network
 
@@ -134,7 +139,8 @@ services:
       - "8000:8000"
     environment:
       - KAFKA_BROKERS=kafka:9092
-      - MONGO_URI=mongodb://monstache:secure_password@mongo1:27017,mongo2:27017,mongo3:27017/damoa?replicaSet=replication&authSource=admin
+      # - MONGO_URI=mongodb://monstache:secure_password@mongo1:27017,mongo2:27017,mongo3:27017/damoa?replicaSet=replication&authSource=admin
+      - MONGO_URI=mongodb+srv://admin:@clusterdamoa2.arr0haj.mongodb.net/damoa?retryWrites=true&w=majority&appName=ClusterDamoa2
     depends_on:
       - kafka
       - mongosetup  # MongoDB 초기화 완료 후 실행
@@ -146,7 +152,8 @@ services:
     build: ./go-consumer
     environment:
       - KAFKA_BROKERS=kafka:9092
-      - MONGO_URI=mongodb://monstache:secure_password@mongo1:27017,mongo2:27017,mongo3:27017/damoa?replicaSet=replication&authSource=admin  # damoa 데이터베이스로 통일
+      # - MONGO_URI=mongodb://monstache:secure_password@mongo1:27017,mongo2:27017,mongo3:27017/damoa?replicaSet=replication&authSource=admin  # damoa 데이터베이스로 통일
+      - MONGO_URI=mongodb+srv://admin:@clusterdamoa2.arr0haj.mongodb.net/damoa?retryWrites=true&w=majority&appName=ClusterDamoa2
     depends_on:
       - kafka
       - mongosetup  # MongoDB 초기화 완료 후 실행

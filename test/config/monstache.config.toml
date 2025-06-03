@@ -1,4 +1,4 @@
-mongo-url = "mongodb://monstache:secure_password@mongo1:27017,mongo2:27017,mongo3:27017/test?replicaSet=replication&authSource=admin"
+mongo-url = "mongodb+srv://admin:@clusterdamoa2.arr0haj.mongodb.net/damoa?retryWrites=true&w=majority&appName=ClusterDamoa2"
 elasticsearch-urls = ["http://elasticsearch:9200"]
 enable-http-server = true
 http-server-addr = "0.0.0.0:8080"
