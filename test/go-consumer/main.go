@@ -47,7 +47,7 @@ type WatchedData struct {
 }
 
 type ClickedItemData struct {
-	ObjectId   string `json:"ObjectId"`
+	ItemId   string `json:"ItemId"`
 }
 
 type CategoryInterestData struct {
@@ -67,7 +67,7 @@ type WatchHistoryItem struct {
 
 // ClickedItem 구조체
 type ClickedItem struct {
-	ObjectId    string    `bson:"ObjectId"`
+	ItemId    string    `bson:"ItemId"`
 	Timestamp time.Time `bson:"timestamp"`
 }
 
@@ -487,16 +487,16 @@ func processUserEvent(collection *mongo.Collection, event UserEvent) error {
 			return err
 		}
 
-		log.Printf("🖱️  Processing CLICKED event: ObjectId=%s", data.ObjectId)
+		log.Printf("🖱️  Processing CLICKED event: ItemId=%s", data.ItemId)
 
 		// 입력값 검증
-		if data.ObjectId == "" {
-			log.Printf("⚠️  Empty ObjectId in CLICKED event")
+		if data.ItemId == "" {
+			log.Printf("⚠️  Empty ItemId in CLICKED event")
 			return nil
 		}
 
 		clickedItem := ClickedItem{
-			ObjectId:    data.ObjectId,
+			ItemId:    data.ItemId,
 			Timestamp: event.Timestamp,
 		}
 

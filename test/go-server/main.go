@@ -41,7 +41,7 @@ type WatchedData struct {
 }
 
 type ClickedItemData struct {
-	ObjectId string `json:"ObjectId"` // 클릭한 아이템 ID
+	ItemId string `json:"ItemId"` // 클릭한 아이템 ID
 }
 
 type CategoryInterestData struct {
@@ -136,6 +136,8 @@ func main() {
 
 // POST /events 엔드포인트 핸들러 - 사용자 이벤트를 받아서 Kafka로 전송
 func handleEvent(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📨 ========== NEW REQUEST ==========")
+    log.Printf("📨 Method: %s, URL: %s", r.Method, r.URL.Path)
 	log.Printf("📨 Received event request from %s", r.RemoteAddr)
 	
 	// HTTP 요청 본문에서 JSON 파싱
@@ -145,6 +147,7 @@ func handleEvent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("🔍 JSON parsing successful: %+v", event)
 
 	// 필수 필드 검증
 	if event.UserID == "" {
@@ -152,11 +155,15 @@ func handleEvent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "userId is required", http.StatusBadRequest)
 		return
 	}
+	log.Printf("🔍 UserID validation passed")
+
 	if event.EventType == "" {
 		log.Printf("❌ Missing event type in request")
 		http.Error(w, "type is required", http.StatusBadRequest)
 		return
 	}
+	log.Printf("🔍 EventType validation passed: %s", event.EventType)
+
 
 	// 유효한 이벤트 타입인지 검증
 	validEventTypes := map[EventType]bool{
@@ -172,6 +179,8 @@ func handleEvent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid event type", http.StatusBadRequest)
 		return
 	}
+	log.Printf("🔍 Event type validation passed")
+
 
 	// 타임스탬프가 없으면 현재 시간으로 설정
 	if event.Timestamp.IsZero() {
@@ -186,6 +195,7 @@ func handleEvent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid event data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("🔍 Event data validation passed")
 
 	// 이벤트를 JSON으로 직렬화
 	eventJSON, err := json.Marshal(event)
@@ -226,14 +236,21 @@ func handleEvent(w http.ResponseWriter, r *http.Request) {
 
 // 이벤트 타입별 데이터 유효성 검증 함수 - 수정된 버전
 func validateEventData(event UserEvent) error {
+	// event.Data가 nil인지 먼저 체크
+	if event.Data == nil {
+		return errors.New("event data is required")
+	}
+
 	switch event.EventType {
 	case EventLiked:
 		var data LikedLiveData
 		dataBytes, err := json.Marshal(event.Data)
 		if err != nil {
+			log.Printf("❌ Failed to marshal LIKED_LIVE event data: %v", err)
 			return errors.New("failed to marshal event data")
 		}
 		if err := json.Unmarshal(dataBytes, &data); err != nil {
+			log.Printf("❌ Failed to unmarshal LIKED_LIVE event data: %v", err)
 			return errors.New("invalid data format for LIKED_LIVE event")
 		}
 		if data.ObjectId == "" {
@@ -244,9 +261,11 @@ func validateEventData(event UserEvent) error {
 		var data WatchedData
 		dataBytes, err := json.Marshal(event.Data)
 		if err != nil {
+			log.Printf("❌ Failed to marshal WATCHED event data: %v", err)
 			return errors.New("failed to marshal event data")
 		}
 		if err := json.Unmarshal(dataBytes, &data); err != nil {
+			log.Printf("❌ Failed to unmarshal WATCHED event data: %v", err)
 			return errors.New("invalid data format for WATCHED event")
 		}
 		if data.ObjectId == "" {
@@ -257,22 +276,26 @@ func validateEventData(event UserEvent) error {
 		var data ClickedItemData
 		dataBytes, err := json.Marshal(event.Data)
 		if err != nil {
+			log.Printf("❌ Failed to marshal CLICKED event data: %v", err)
 			return errors.New("failed to marshal event data")
 		}
 		if err := json.Unmarshal(dataBytes, &data); err != nil {
+			log.Printf("❌ Failed to unmarshal CLICKED event data: %v", err)
 			return errors.New("invalid data format for CLICKED event")
 		}
-		if data.ObjectId == "" {
-			return errors.New("ObjectId is required for CLICKED event")
+		if data.ItemId == "" {
+			return errors.New("ItemId is required for CLICKED event")
 		}
 		
 	case EventCategoryInterest:
 		var data CategoryInterestData
 		dataBytes, err := json.Marshal(event.Data)
 		if err != nil {
+			log.Printf("❌ Failed to marshal CATEGORY_INTEREST event data: %v", err)
 			return errors.New("failed to marshal event data")
 		}
 		if err := json.Unmarshal(dataBytes, &data); err != nil {
+			log.Printf("❌ Failed to unmarshal CATEGORY_INTEREST event data: %v", err)
 			return errors.New("invalid data format for CATEGORY_INTEREST event")
 		}
 		if data.Category == "" {
@@ -283,9 +306,11 @@ func validateEventData(event UserEvent) error {
 		var data SearchData
 		dataBytes, err := json.Marshal(event.Data)
 		if err != nil {
+			log.Printf("❌ Failed to marshal SEARCH event data: %v", err)
 			return errors.New("failed to marshal event data")
 		}
 		if err := json.Unmarshal(dataBytes, &data); err != nil {
+			log.Printf("❌ Failed to unmarshal SEARCH event data: %v", err)
 			return errors.New("invalid data format for SEARCH event")
 		}
 		if data.Query == "" {
