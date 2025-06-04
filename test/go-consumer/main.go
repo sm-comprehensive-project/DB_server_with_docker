@@ -48,6 +48,8 @@ type WatchedData struct {
 
 type ClickedItemData struct {
 	ItemId   string `json:"ItemId"`
+	Thumbnail string `json:"thumbnail"`
+	Link      string `json:"link"`
 }
 
 type CategoryInterestData struct {
@@ -68,6 +70,8 @@ type WatchHistoryItem struct {
 // ClickedItem 구조체
 type ClickedItem struct {
 	ItemId    string    `bson:"ItemId"`
+	Thumbnail string `json:"thumbnail"`
+	Link      string `json:"link"`
 	Timestamp time.Time `bson:"timestamp"`
 }
 
@@ -497,6 +501,8 @@ func processUserEvent(collection *mongo.Collection, event UserEvent) error {
 
 		clickedItem := ClickedItem{
 			ItemId:    data.ItemId,
+			Thumbnail: data.Thumbnail,
+			Link:      data.Link,
 			Timestamp: event.Timestamp,
 		}
 

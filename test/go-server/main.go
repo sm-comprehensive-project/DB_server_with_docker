@@ -42,6 +42,8 @@ type WatchedData struct {
 
 type ClickedItemData struct {
 	ItemId string `json:"ItemId"` // 클릭한 아이템 ID
+	Thumbnail string `json:"thumbnail"`
+	Link      string `json:"link"`
 }
 
 type CategoryInterestData struct {
